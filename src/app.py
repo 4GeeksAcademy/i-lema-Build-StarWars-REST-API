@@ -105,7 +105,7 @@ def get_vehicle(vehicles_id):
 
 
 
-@app.route('/<int:user_id>/favourites', methods=['GET'])
+@app.route('/users/<int:user_id>/favourites', methods=['GET'])
 def get_user_favourites(user_id):
 
     user = User.query.get(user_id)
@@ -118,7 +118,7 @@ def get_user_favourites(user_id):
 
 
 @app.route('/favourite/planet/<int:planets_id>', methods=['POST'])
-def add_favorite_planet(planets_id):
+def add_favourite_planet(planets_id):
 
     user_id = request.headers.get('user_id')
     user = User.query.get(user_id)
@@ -131,7 +131,7 @@ def add_favorite_planet(planets_id):
 
     db.session.commit()
 
-    return jsonify({'message': 'Favorite planet added successfully'}), 200
+    return jsonify({'msg': 'Favourite planet added successfully'}), 200
 
 
 
@@ -149,28 +149,28 @@ def add_favorite_character(characters_id):
 
     db.session.commit()
 
-    return jsonify({'message': 'Favorite character added successfully'}), 200
+    return jsonify({'msg': 'Favourite character added successfully'}), 200
 
 
 
-@app.route('/favorite/planet/<int:planets_id>', methods=['DELETE'])
-def delete_favorite_planet(planets_id):
+@app.route('/favourite/planet/<int:planets_id>', methods=['DELETE'])
+def delete_favourite_planet(planets_id):
     
-    favorite_planet = Favourites.query.filter_by(planet_id=planets_id).first()
+    favourite_planet = Favourites.query.filter_by(planet_id=planets_id).first()
 
-    db.session.delete(favorite_planet)
+    db.session.delete(favourite_planet)
     db.session.commit()
-    return jsonify({'message': 'Favorite planet deleted successfully'}), 200
+    return jsonify({'msg': 'Favourite planet deleted successfully'}), 200
 
 
-@app.route('/favorite/characters/<int:characters_id>', methods=['DELETE'])
-def delete_favorite_character(characters_id):
+@app.route('/favourite/people/<int:people_id>', methods=['DELETE'])
+def delete_favourite_character(characters_id):
     
-    favorite_character = Favourites.query.filter_by(character_id=characters_id).first()
+    favourite_character = Favourites.query.filter_by(character_id=characters_id).first()
 
-    db.session.delete(favorite_character)
+    db.session.delete(favourite_character)
     db.session.commit()
-    return jsonify({'message': 'Favorite character deleted successfully'}), 200
+    return jsonify({'msg': 'Favourite character deleted successfully'}), 200
 
 # this only runs if `$ python src/app.py` is executed
 if __name__ == '__main__':
