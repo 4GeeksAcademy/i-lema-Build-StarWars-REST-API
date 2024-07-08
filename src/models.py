@@ -1,50 +1,52 @@
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import ForeignKey
-from sqlalchemy.orm import relationship
 
 db = SQLAlchemy()
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), unique=True, nullable=False)
-    password = db.Column(db.String(80), unique=False, nullable=False)
-    is_active = db.Column(db.Boolean(), unique=False, nullable=False)
-    favourites = db.relationship("Favourites", uselist=False, lazy=True)
+    password = db.Column(db.String(80), nullable=False)
+    is_active = db.Column(db.Boolean(), nullable=False)
+    favourites = db.relationship("Favourites", backref="user", lazy=True)
 
     def __repr__(self):
-        return '<User %r>' % self.username
+        return '<User %r>' % self.email
 
     def serialize(self):
         return {
             "id": self.id,
             "email": self.email,
-            # do not serialize the password, its a security breach
         }
-    
+
 class Favourites(db.Model):
     __tablename__ = 'favourites'
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    user_id = db.Column(db.Integer, db.ForeignKey(User.id),nullable=False)
-    user = db.relationship("User", back_populates="favourites")
-    characters = db.relationship("Characters", lazy=True)
-    planets = db.relationship("Planets", lazy=True)
-    vehicles = db.relationship("Vehicles", lazy=True)
-    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    character_id = db.Column(db.Integer, db.ForeignKey('characters.id'))
+    planet_id = db.Column(db.Integer, db.ForeignKey('planets.id'))
+    vehicle_id = db.Column(db.Integer, db.ForeignKey('vehicles.id'))
+
+    character = db.relationship("Characters", backref="favourites")
+    planet = db.relationship("Planets", backref="favourites")
+    vehicle = db.relationship("Vehicles", backref="favourites")
+
     def serialize(self):
         return {
             "id": self.id,
+            "user_id": self.user_id,
+            "character_id": self.character_id,
+            "planet_id": self.planet_id,
+            "vehicle_id": self.vehicle_id
         }
-    
+
 class Characters(db.Model):
     __tablename__ = 'characters'
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    name = db.Column(db.String(20), unique=False, nullable=False)
-    birth_year = db.Column(db.String(20), unique=False, nullable=False)
-    gender = db.Column(db.String(20), unique=False, nullable=False)
-    homeworld = db.Column(db.String(20), unique=False, nullable=False)
-    species = db.Column(db.String(200), unique=False, nullable=False)
-    favourite_id = db.Column(db.Integer, db.ForeignKey('favourites.id'),nullable=True)
-    favourite = db.relationship('Favourites', back_populates = 'characters')
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(20), nullable=False)
+    birth_year = db.Column(db.String(20), nullable=False)
+    gender = db.Column(db.String(20), nullable=False)
+    homeworld = db.Column(db.String(20), nullable=False)
+    species = db.Column(db.String(200), nullable=False)
 
     def serialize(self):
         return {
@@ -54,17 +56,15 @@ class Characters(db.Model):
             "gender": self.gender,
             "homeworld": self.homeworld,
             "species": self.species,
-            "favourite_id": self.favourite_id,              
+            "favourites": [fav.serialize() for fav in self.favourites]
         }
 
 class Planets(db.Model):
     __tablename__ = 'planets'
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    name = db.Column(db.String(20), unique=False, nullable=False)
-    climate = db.Column(db.String(20), unique=False, nullable=False)
-    terrain = db.Column(db.String(20), unique=False, nullable=False)
-    favourite_id = db.Column(db.Integer, db.ForeignKey('favourites.id'),nullable=True)
-    favourite = db.relationship('Favourites', back_populates = 'planets')
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(20), nullable=False)
+    climate = db.Column(db.String(20), nullable=False)
+    terrain = db.Column(db.String(20), nullable=False)
 
     def serialize(self):
         return {
@@ -72,17 +72,15 @@ class Planets(db.Model):
             "name": self.name,
             "climate": self.climate,
             "terrain": self.terrain,
-            "favourite_id": self.favourite_id,              
+            "favourites": [fav.serialize() for fav in self.favourites]
         }
-    
-class Vehicles (db.Model):
+
+class Vehicles(db.Model):
     __tablename__ = 'vehicles'
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    name = db.Column(db.String(20), unique=False, nullable=False)
-    model = db.Column(db.String(20), unique=False, nullable=False)
-    manufacturer = db.Column(db.String(20), unique=False, nullable=False)
-    favourite_id = db.Column(db.Integer, db.ForeignKey('favourites.id'),nullable=True)
-    favourite = db.relationship('Favourites', back_populates = 'vehicles')
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(20), nullable=False)
+    model = db.Column(db.String(20), nullable=False)
+    manufacturer = db.Column(db.String(20), nullable=False)
 
     def serialize(self):
         return {
@@ -90,5 +88,5 @@ class Vehicles (db.Model):
             "name": self.name,
             "model": self.model,
             "manufacturer": self.manufacturer,
-            "favourite_id": self.favourite_id,              
+            "favourites": [fav.serialize() for fav in self.favourites]
         }
